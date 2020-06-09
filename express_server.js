@@ -1,13 +1,13 @@
 const express = require("express");
 const app = express();
-const PORT = 8080; 
+const PORT = 8080;
 
 //body parser-converts the request body from a Buffer into string
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended:true}));
 
 //Sets ejs as the view engine
-app.set("view engine", "ejs")
+app.set("view engine", "ejs");
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -19,8 +19,8 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase)
-})
+  res.json(urlDatabase);
+});
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
@@ -35,8 +35,8 @@ app.get("/urls/new", (req, res) => {
 });
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL
-  res.redirect(`/urls/${shortURL}`)
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect(`/urls/${shortURL}`);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -45,21 +45,21 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL]
+  const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
-})
+});
 
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-function generateRandomString() {
-  var result           = '';
-  var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  var charactersLength = characters.length;
-  for ( var i = 0; i < 6; i++ ) {
-     result += characters[Math.floor(Math.random() * charactersLength)];
+const generateRandomString = () => {
+  let result           = '';
+  let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let charactersLength = characters.length;
+  for (let i = 0; i < 6; i++) {
+    result += characters[Math.floor(Math.random() * charactersLength)];
   }
   return result;
-}
+};
