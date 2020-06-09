@@ -2,6 +2,10 @@ const express = require("express");
 const app = express();
 const PORT = 8080; 
 
+//body parser-converts the request body from a Buffer into string
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended:true}));
+
 //Sets ejs as the view engine
 app.set("view engine", "ejs")
 
@@ -10,7 +14,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-//added additional endpoints
+//added additional endpoints (route)
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -25,8 +29,13 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+//Add a GET Route to Show the Form
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
+});
+app.post("/urls", (req, res) => {
+  console.log(req.body);  
+  res.send("Ok");         
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -38,3 +47,4 @@ app.get("/urls/:shortURL", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
