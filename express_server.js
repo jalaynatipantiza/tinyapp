@@ -4,6 +4,7 @@ const PORT = 8080;
 
 //cookie parser
 var cookieParser = require('cookie-parser')
+app.use(cookieParser())
 
 //body parser-converts the request body from a Buffer into string
 const bodyParser = require("body-parser");
@@ -27,14 +28,22 @@ app.get("/urls.json", (req, res) => {
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
+
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase };
+  //check using if statement if yes pass the cookie if not pass empty string tempcookie name
+  let templateVars = { 
+    urls: urlDatabase,
+    username: req.cookies['username']
+  }
   res.render("urls_index", templateVars);
 });
 
 //Add a GET Route to Show the Form
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    username: req.cookies["username"]
+  }
+  res.render("urls_new", templateVars);
 });
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
@@ -43,7 +52,11 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  let templateVars = { 
+    shortURL: req.params.shortURL, 
+    longURL: urlDatabase[req.params.shortURL],
+    username: req.cookies["username"]
+    };
   res.render("urls_show", templateVars);
 });
 
@@ -55,7 +68,7 @@ app.get("/u/:shortURL", (req, res) => {
 //username 
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username)
-  res.redirect("urls")
+  res.redirect("/urls")
 })
 // //redirect when edited
 app.post("/urls/:id", (req, res) => {
@@ -70,6 +83,12 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls")
 })
 
+//logout
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("username")
+  res.redirect("/urls")
+})
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
