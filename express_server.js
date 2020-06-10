@@ -40,7 +40,6 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  //check using if statement if yes pass the cookie if not pass empty string tempcookie name
   let templateVars = { 
     urls: urlDatabase,
     username: req.cookies['username']
@@ -75,13 +74,28 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-//returns endpoint, which returns the template 
+//returns endpoint, which returns the template for resgistration
 app.get("/register", (req, res) => {
   let templateVars = {
     username: req.cookies["username"]
   }
   res.render("urls_register", templateVars )
 });
+
+app.post("/register", (req, res) => {
+  const id = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  const newUser = {
+    id,
+    email,
+    password
+  }
+  users[id] = newUser;
+  res.cookie("user_id", id )  
+  console.log(users)                  
+  return res.redirect('/urls');
+})
 
 //username 
 app.post("/login", (req, res) => {
