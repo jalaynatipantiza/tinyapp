@@ -1,17 +1,14 @@
 const express = require("express");
 const app = express();
 const PORT = 8080;
-
-//cookie parser
-var cookieParser = require('cookie-parser')
-app.use(cookieParser())
-
-//body parser-converts the request body from a Buffer into string
+const  cookieParser = require('cookie-parser')
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended:true}));
 
-//Sets ejs as the view engine
+//middlewear 
+app.use(cookieParser())
+app.use(bodyParser.urlencoded({extended:true}));
 app.set("view engine", "ejs");
+
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -63,6 +60,14 @@ app.get("/urls/:shortURL", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
+});
+
+//returns endpoint, which returns the template 
+app.get("/register", (req, res) => {
+  let templateVars = {
+    username: req.cookies["username"]
+  }
+  res.render("urls_register", templateVars )
 });
 
 //username 
