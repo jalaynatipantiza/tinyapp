@@ -42,15 +42,16 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   let templateVars = { 
     urls: urlDatabase,
-    username: req.cookies['username']
+    user: users[req.cookies["user_id"]]
   }
+  console.log(req.cookies["user_id"]);
   res.render("urls_index", templateVars);
 });
 
 //Add a GET Route to Show the Form
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"]
+    user: users[req.cookies["user_id"]]
   }
   res.render("urls_new", templateVars);
 });
@@ -64,7 +65,7 @@ app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["username"]
+    user: users[req.cookies["user_id"]]
     };
   res.render("urls_show", templateVars);
 });
@@ -77,7 +78,8 @@ app.get("/u/:shortURL", (req, res) => {
 //returns endpoint, which returns the template for resgistration
 app.get("/register", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"]
+    user: users[req.cookies["user_id"]]
+    
   }
   res.render("urls_register", templateVars )
 });
@@ -93,15 +95,14 @@ app.post("/register", (req, res) => {
   }
   users[id] = newUser;
   res.cookie("user_id", id )  
-  console.log(users)                  
-  return res.redirect('/urls');
+  res.redirect('/urls');
 })
 
 //username 
-app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username)
-  res.redirect("/urls")
-})
+// app.post("/login", (req, res) => {
+//   res.cookie("username", req.body.username)
+//   res.redirect("/urls")
+// })
 // //redirect when edited
 app.post("/urls/:id", (req, res) => {
   urlDatabase[req.params.id] = req.body.longURL
@@ -118,7 +119,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //logout
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username")
+  res.clearCookie("user_id")
   res.redirect("/urls")
 })
 app.listen(PORT, () => {
