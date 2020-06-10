@@ -2,6 +2,9 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 
+//cookie parser
+var cookieParser = require('cookie-parser')
+
 //body parser-converts the request body from a Buffer into string
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended:true}));
@@ -14,7 +17,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-//added additional endpoints (route)
+// //added additional endpoints (route)
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -49,30 +52,29 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-//redirect when edited
+//username 
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username)
+  res.redirect("urls")
+})
+// //redirect when edited
 app.post("/urls/:id", (req, res) => {
-  // console.log(req.body);
-  // console.log(req.params);
   urlDatabase[req.params.id] = req.body.longURL
   res.redirect("/urls")
- 
 })
 
-
-//redirect when deleted
+// //redirect when deleted
 app.post("/urls/:shortURL/delete", (req, res) => {
   const url = req.params.shortURL
-
   delete urlDatabase[url]
   res.redirect("/urls")
-
 })
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-//generates random short url string
+// //generates random short url string
 const generateRandomString = () => {
   let result           = '';
   let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
