@@ -11,9 +11,12 @@ app.set("view engine", "ejs");
 
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+
+    b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
+    i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW"  }
+  
 };
+
 
 const users = { 
   "userRandomID": {
@@ -53,28 +56,23 @@ app.get("/urls/new", (req, res) => {
   const templateVars = {
     user: users[req.cookies["user_id"]]
   }
-  res.render("urls_new", templateVars);
+  return res.render("urls_new", templateVars);
 } 
   res.redirect("/login")
 });
 
-app.post("/urls", (req, res) => {
-  const shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
-  res.redirect(`/urls/${shortURL}`);
-});
 
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { 
     shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[req.cookies["user_id"]]
-    };
+  };
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
@@ -93,6 +91,14 @@ app.get("/register", (req, res) => {
     user: users[req.cookies["user_id"]]   
   }
   res.render("urls_register", templateVars )
+});
+
+
+app.post("/urls", (req, res) => {
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = {longURL: req.body.longURL, userID: req.cookies["user_id"]};
+  console.log(urlDatabase);
+  res.redirect(`/urls/${shortURL}`);
 });
 
 app.post("/register", (req, res) => {
@@ -117,7 +123,6 @@ app.post("/register", (req, res) => {
   users[id] = newUser;
 
   res.cookie("user_id", id ) 
-  console.log(users); 
   return res.redirect('/urls'); 
 })
 
@@ -139,7 +144,7 @@ app.post("/login", (req, res) => {
 
 // //redirect when edited
 app.post("/urls/:id", (req, res) => {
-  urlDatabase[req.params.id] = req.body.longURL
+  urlDatabase[req.params.id] = {longURL: req.body.longURL, userID: req.cookies["user_id"]};
   res.redirect("/urls")
 })
 
