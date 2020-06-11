@@ -44,7 +44,6 @@ app.get("/urls", (req, res) => {
     urls: urlDatabase,
     user: users[req.cookies["user_id"]]
   }
-  console.log(req.cookies["user_id"]);
   res.render("urls_index", templateVars);
 });
 
@@ -78,31 +77,43 @@ app.get("/u/:shortURL", (req, res) => {
 //returns endpoint, which returns the template for resgistration
 app.get("/register", (req, res) => {
   let templateVars = {
-    user: users[req.cookies["user_id"]]
-    
+    user: users[req.cookies["user_id"]]   
   }
   res.render("urls_register", templateVars )
 });
 
 app.post("/register", (req, res) => {
-  const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
+  if(!email) {
+    return res.status(400).send('Invalid email');
+
+  } else if(!password) {
+    return res.status(400).send('Invalid password');
+  }
+  let emailStatus= checkIfEmailExists(req.body.email)
+  if(emailStatus) {
+    return res.status(400).send('Email already exist')
+  }
+  const id = generateRandomString();
   const newUser = {
     id,
     email,
     password
   }
   users[id] = newUser;
-  res.cookie("user_id", id )  
-  res.redirect('/urls');
+
+  res.cookie("user_id", id ) 
+  console.log(users); 
+  return res.redirect('/urls'); 
 })
 
+
 //username 
-// app.post("/login", (req, res) => {
-//   res.cookie("username", req.body.username)
-//   res.redirect("/urls")
-// })
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username)
+  res.redirect("/urls")
+})
 // //redirect when edited
 app.post("/urls/:id", (req, res) => {
   urlDatabase[req.params.id] = req.body.longURL
@@ -136,3 +147,14 @@ const generateRandomString = () => {
   }
   return result;
 };
+
+//check if email exists
+function checkIfEmailExists(email) {
+  for (let userId in users) {
+    if (users[userId].email === email) {
+      return true;
+    }
+  }
+  return false;
+};
+
