@@ -49,11 +49,15 @@ app.get("/urls", (req, res) => {
 
 //Add a GET Route to Show the Form
 app.get("/urls/new", (req, res) => {
+  if(req.cookies["user_id"] && users[req.cookies["user_id"]]) { 
   const templateVars = {
     user: users[req.cookies["user_id"]]
   }
   res.render("urls_new", templateVars);
+} 
+  res.redirect("/login")
 });
+
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
