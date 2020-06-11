@@ -1,8 +1,10 @@
 const express = require("express");
 const app = express();
 const PORT = 8080;
-const  cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser')
 const bodyParser = require("body-parser");
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 //middlewear 
 app.use(cookieParser())
@@ -115,23 +117,27 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  const hashedPassword = bcrypt.hashSync(req.body.password, saltRounds);
   const email = req.body.email;
-  const password = req.body.password;
+  console.log(hashedPassword);
+      //invalid email
   if(!email) {
     return res.status(400).send('Invalid email');
 
-  } else if(!password) {
-    return res.status(400).send('Invalid password');
+      //invalid password
+  } else if(!hashedPassword) {
+      return res.status(400).send('Invalid password');
   }
+  //if it does work...
   let emailStatus = checkIfEmailExists(req.body.email)
-  if(emailStatus) {
-    return res.status(400).send('Email already exist')
-  }
+    if(emailStatus) {
+      return res.status(400).send('Email already exist')
+    }
   const id = generateRandomString();
   const newUser = {
     id,
     email,
-    password
+    password: hashedPassword
   }
   users[id] = newUser;
 
@@ -142,13 +148,14 @@ app.post("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
   const email = req.body.email
-  const password = req.body.password
-
   let userId = checkIfEmailExists(email);
+
   if(!userId) {
     return res.status(403).send('user with that e-mail or password cannot be found');
   }
-  if(password === users[userId].password) {
+  const isCorrectPass = bcrypt.compareSync(req.body.password, users[userId].password);
+  console.log("check if password is correct", isCorrectPass)
+  if(isCorrectPass) {
     res.cookie("user_id", userId)
     return res.redirect("/urls")
   }
@@ -169,10 +176,10 @@ app.post("/urls/:id", (req, res) => {
 // //redirect when deleted
 app.post("/urls/:shortURL/delete", (req, res) => {
   if(req.cookies["user_id"] === urlDatabase[req.params.shortURL].userID) {
-  const url = req.params.shortURL
-  delete urlDatabase[url]
-  res.redirect("/urls")
-  } else {
+    const url = req.params.shortURL
+    delete urlDatabase[url]
+    res.redirect("/urls")
+} else {
     res.status(403).send("forbidden")
   }
 })
