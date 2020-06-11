@@ -81,6 +81,8 @@ app.get("/login", (req, res) => {
   }
   res.render("_login", templateVars)
 })
+
+
 //returns endpoint, which returns the template for resgistration
 app.get("/register", (req, res) => {
   let templateVars = {
@@ -98,7 +100,7 @@ app.post("/register", (req, res) => {
   } else if(!password) {
     return res.status(400).send('Invalid password');
   }
-  let emailStatus= checkIfEmailExists(req.body.email)
+  let emailStatus = checkIfEmailExists(req.body.email)
   if(emailStatus) {
     return res.status(400).send('Email already exist')
   }
@@ -116,11 +118,21 @@ app.post("/register", (req, res) => {
 })
 
 
-//username 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username)
-  res.redirect("/urls")
+  const email = req.body.email
+  const password = req.body.password
+
+  let userId = checkIfEmailExists(email);
+  if(!userId) {
+    return res.status(403).send('user with that e-mail or password cannot be found');
+  }
+  if(password === users[userId].password) {
+    res.cookie("user_id", userId)
+    return res.redirect("/urls")
+  }
+  return res.status(403).send('user with that e-mail or password cannot be found')
 })
+
 // //redirect when edited
 app.post("/urls/:id", (req, res) => {
   urlDatabase[req.params.id] = req.body.longURL
@@ -159,7 +171,7 @@ const generateRandomString = () => {
 function checkIfEmailExists(email) {
   for (let userId in users) {
     if (users[userId].email === email) {
-      return true;
+      return userId;
     }
   }
   return false;
