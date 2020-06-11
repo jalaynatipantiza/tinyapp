@@ -43,8 +43,9 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  const tempDatabase = urlsForUsers(req.cookies["user_id"])
   let templateVars = { 
-    urls: urlDatabase,
+    urls: tempDatabase,
     user: users[req.cookies["user_id"]]
   }
   res.render("urls_index", templateVars);
@@ -63,12 +64,22 @@ app.get("/urls/new", (req, res) => {
 
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { 
-    shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL].longURL,
-    user: users[req.cookies["user_id"]]
-  };
-  res.render("urls_show", templateVars);
+  console.log(req.cookies);
+  if(urlDatabase[req.params.shortURL]) {
+    if(req.cookies["user_id"] === urlDatabase[req.params.shortURL].userID) { 
+      let templateVars = { 
+        shortURL: req.params.shortURL, 
+        longURL: urlDatabase[req.params.shortURL].longURL,
+        user: users[req.cookies["user_id"]]
+      };
+      res.render("urls_show", templateVars);
+    } else {
+      res.redirect("/urls")
+    }
+  } else {
+    res.send("That url doesn't exist")
+  }
+
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -94,10 +105,12 @@ app.get("/register", (req, res) => {
 });
 
 
+
 app.post("/urls", (req, res) => {
+
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = {longURL: req.body.longURL, userID: req.cookies["user_id"]};
-  console.log(urlDatabase);
+  
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -144,15 +157,24 @@ app.post("/login", (req, res) => {
 
 // //redirect when edited
 app.post("/urls/:id", (req, res) => {
+  if(req.cookies["user_id"] === urlDatabase[req.params.shortURL].userID) {
+
   urlDatabase[req.params.id] = {longURL: req.body.longURL, userID: req.cookies["user_id"]};
   res.redirect("/urls")
+  } else {
+    res.status(403).send("forbidden")
+  }
 })
 
 // //redirect when deleted
 app.post("/urls/:shortURL/delete", (req, res) => {
+  if(req.cookies["user_id"] === urlDatabase[req.params.shortURL].userID) {
   const url = req.params.shortURL
   delete urlDatabase[url]
   res.redirect("/urls")
+  } else {
+    res.status(403).send("forbidden")
+  }
 })
 
 //logout
@@ -185,4 +207,15 @@ function checkIfEmailExists(email) {
   }
   return false;
 };
+
+//function that checks if URLs where the userID is equal to the id of the currently logged-in user.
+function urlsForUsers(id) {
+  let tempDatabase = {};
+  for(let shortUrl in urlDatabase) {
+    if( urlDatabase[shortUrl].userID === id ) {
+     tempDatabase[shortUrl] = urlDatabase[shortUrl]
+    }
+  }
+  return tempDatabase;
+}
 
