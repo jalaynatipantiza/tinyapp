@@ -39,7 +39,7 @@ const users = {
 
 //GETS
 
-// endpoint that redirects to urls or login page 
+// endpoint that redirects to urls or login page
 app.get("/", (req, res) => {
   if (req.session.user_id) {
     res.redirect("/urls");
@@ -48,7 +48,7 @@ app.get("/", (req, res) => {
   }
 });
 
-//Route that GETS user template urls_index 
+//Route that GETS user template urls_index
 app.get("/urls", (req, res) => {
   const tempDatabase = urlsForUsers(req.session.user_id, urlDatabase);
   let templateVars = {
@@ -134,7 +134,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
-//redirect user to url page when user edits 
+//redirect user to url page when user edits
 app.post("/urls/:id", (req, res) => {
   if (req.session.user_id && req.session.user_id === urlDatabase[req.params.id].userID) {
     urlDatabase[req.params.id] = {longURL: req.body.longURL, userID: req.session.user_id};
@@ -176,7 +176,7 @@ app.post("/login", (req, res) => {
 app.post("/register", (req, res) => {
   const email = req.body.email;
   
-  //for email line left blank 
+  //for email line left blank
   if (!email) {
     return res.status(400).send('<h1>Invalid email</h1>');
 
@@ -184,7 +184,7 @@ app.post("/register", (req, res) => {
   } else if (!req.body.password) {
     return res.status(400).send('<h1>Invalid password</h1>');
   }
-  //if both email and password works sucessfully then register new user 
+  //if both email and password works sucessfully then register new user
   let emailStatus = checkIfEmailExists(req.body.email, users);
   if (emailStatus) {
     return res.status(400).send('<h1>Email already exist</1>');
