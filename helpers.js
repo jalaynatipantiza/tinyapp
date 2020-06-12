@@ -5,7 +5,7 @@ const checkIfEmailExists = (email, database) => {
       return userId;
     }
   }
-  return false;
+
 };
 
 //checks if URLs where the userID is equal to the id of the currently logged-in user.
