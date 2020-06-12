@@ -1,10 +1,10 @@
 const express = require("express");
-const app = express();
-const PORT = 8080;
 const cookieSession = require('cookie-session');
 const bodyParser = require("body-parser");
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+const app = express();
+const PORT = 8080;
 const {checkIfEmailExists, urlsForUsers, generateRandomString } = require("./helpers");
 
 
@@ -17,14 +17,12 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000
 }));
 
-
 const urlDatabase = {
 
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW"  }
   
 };
-
 
 const users = {
   "userRandomID": {
@@ -39,7 +37,9 @@ const users = {
   }
 };
 
-// endpoint
+//GETS
+
+// endpoint that redirects to urls or login page 
 app.get("/", (req, res) => {
   if (req.session.user_id) {
     res.redirect("/urls");
@@ -48,7 +48,7 @@ app.get("/", (req, res) => {
   }
 });
 
-
+//Route that GETS user template urls_index 
 app.get("/urls", (req, res) => {
   const tempDatabase = urlsForUsers(req.session.user_id, urlDatabase);
   let templateVars = {
@@ -58,7 +58,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-//Add a GET Route to Show the Form
+//Add a GET Route to Show Form of creating new url or to login
 app.get("/urls/new", (req, res) => {
   if (req.session.user_id && users[req.session.user_id]) {
     const templateVars = {
@@ -69,7 +69,7 @@ app.get("/urls/new", (req, res) => {
   res.redirect("/login");
 });
 
-
+// renders urls_show page if user is logged in and owns url otherwise redirects
 app.get("/urls/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL]) {
     if (req.session.user_id) {
@@ -91,6 +91,7 @@ app.get("/urls/:shortURL", (req, res) => {
   
 });
 
+//redirects to long url if it exists
 app.get("/u/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL]) {
     const longURL = urlDatabase[req.params.shortURL].longURL;
@@ -109,7 +110,7 @@ app.get("/login", (req, res) => {
 });
 
 
-//returns endpoint, which returns the template for resgistration
+//Returns the template for resgistration
 app.get("/register", (req, res) => {
   if (req.session.user_id && req.session.user_id === users[req.session.user_id]) {
     res.redirect("/urls");
@@ -122,6 +123,9 @@ app.get("/register", (req, res) => {
 });
 
 
+//POSTS
+
+
 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
@@ -130,7 +134,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
-// //redirect when edited
+//redirect user to url page when user edits 
 app.post("/urls/:id", (req, res) => {
   if (req.session.user_id && req.session.user_id === urlDatabase[req.params.id].userID) {
     urlDatabase[req.params.id] = {longURL: req.body.longURL, userID: req.session.user_id};
@@ -140,7 +144,7 @@ app.post("/urls/:id", (req, res) => {
   }
 });
 
-// //redirect when deleted
+//Allows user to delete and then redirects back to url page
 app.post("/urls/:shortURL/delete", (req, res) => {
   if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
     const url = req.params.shortURL;
@@ -151,6 +155,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 });
 
+//login process to check if user already registered or not
 app.post("/login", (req, res) => {
   const email = req.body.email;
   let userId = checkIfEmailExists(email, users);
@@ -167,19 +172,19 @@ app.post("/login", (req, res) => {
   return res.status(403).send('user with that e-mail or password cannot be found');
 });
 
-
+//registering process
 app.post("/register", (req, res) => {
   const email = req.body.email;
   
-  //invalid email
+  //for email line left blank 
   if (!email) {
     return res.status(400).send('<h1>Invalid email</h1>');
-    
-    //invalid password
+
+    //for password line left blank
   } else if (!req.body.password) {
     return res.status(400).send('<h1>Invalid password</h1>');
   }
-  //if it does work...
+  //if both email and password works sucessfully then register new user 
   let emailStatus = checkIfEmailExists(req.body.email, users);
   if (emailStatus) {
     return res.status(400).send('<h1>Email already exist</1>');
@@ -197,8 +202,7 @@ app.post("/register", (req, res) => {
 });
 
 
-//logout
-
+//once logged out clears cookies and redirects
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
