@@ -14,7 +14,7 @@ app.set("view engine", "ejs");
 app.use(cookieSession({
   name: 'session',
   keys: ["settingthekeytosomethingforsecurityreasonsbecausewelikesafety"],
-  maxAge: 24 * 60 * 60 * 1000 
+  maxAge: 24 * 60 * 60 * 1000
 }));
 
 
@@ -39,12 +39,12 @@ const users = {
   }
 };
 
-// //added additional endpoints (route)
+// endpoint
 app.get("/", (req, res) => {
-  if(req.session.user_id ) {
-  res.redirect("/urls");
+  if (req.session.user_id) {
+    res.redirect("/urls");
   } else {
-    res.redirect('/login')
+    res.redirect('/login');
   }
 });
 
@@ -72,25 +72,32 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL]) {
-    if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
-      let templateVars = {
-        shortURL: req.params.shortURL,
-        longURL: urlDatabase[req.params.shortURL].longURL,
-        user: users[req.session.user_id]
-      };
-      res.render("urls_show", templateVars);
-    } else {
-      res.send("That url doesn't exist");
+    if (req.session.user_id) {
+      if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
+        let templateVars = {
+          shortURL: req.params.shortURL,
+          longURL: urlDatabase[req.params.shortURL].longURL,
+          user: users[req.session.user_id]
+        };
+        return res.render("urls_show", templateVars);
+      } else {
+        return res.send("You can only view your own <a href='/urls'>urls</a>");
+      }
     }
-  } else {
-    res.send("Sorry cannot access URL with given id");
+  } else if (req.session.user_id) {
+    return res.send("That url doesn't exist, <a href='/urls'>go back</a>");
   }
+  return res.send("Please log in or register <a href='/login'>urls</a>");
   
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
+  if (urlDatabase[req.params.shortURL]) {
+    const longURL = urlDatabase[req.params.shortURL].longURL;
+    res.redirect(longURL);
+  } else {
+    res.send("Sorry that url doesn't exist, <a href='/urls'>go back</a>");
+  }
 });
 
 //returns endpoint for login template
@@ -104,29 +111,28 @@ app.get("/login", (req, res) => {
 
 //returns endpoint, which returns the template for resgistration
 app.get("/register", (req, res) => {
-  if(req.session.user_id) {
-    res.redirect("/urls")
+  if (req.session.user_id && req.session.user_id === users[req.session.user_id]) {
+    res.redirect("/urls");
   } else {
-  let templateVars = {
-    user: users[req.session.user_id]
-  };
-  res.render("urls_register", templateVars);
-}
+    let templateVars = {
+      user: users[req.session.user_id]
+    };
+    res.render("urls_register", templateVars);
+  }
 });
 
 
 
 app.post("/urls", (req, res) => {
-  
   const shortURL = generateRandomString();
+
   urlDatabase[shortURL] = {longURL: req.body.longURL, userID: req.session.user_id};
-  
   res.redirect(`/urls/${shortURL}`);
 });
 
 // //redirect when edited
 app.post("/urls/:id", (req, res) => {
-  if (req.session.user_id === urlDatabase[req.params.id].userID) { 
+  if (req.session.user_id && req.session.user_id === urlDatabase[req.params.id].userID) {
     urlDatabase[req.params.id] = {longURL: req.body.longURL, userID: req.session.user_id};
     res.redirect("/urls");
   } else {
@@ -152,7 +158,7 @@ app.post("/login", (req, res) => {
   if (!userId) {
     return res.status(403).send('user with that e-mail or password cannot be found');
   }
-  const isCorrectPassword= bcrypt.compareSync(req.body.password, users[userId].password);
+  const isCorrectPassword = bcrypt.compareSync(req.body.password, users[userId].password);
 
   if (isCorrectPassword) {
     req.session.user_id = userId;
@@ -163,22 +169,22 @@ app.post("/login", (req, res) => {
 
 
 app.post("/register", (req, res) => {
-  const hashedPassword = bcrypt.hashSync(req.body.password, saltRounds);
   const email = req.body.email;
   
   //invalid email
   if (!email) {
-    return res.status(400).send('Invalid email');
+    return res.status(400).send('<h1>Invalid email</h1>');
     
     //invalid password
-  } else if (!hashedPassword) {
-    return res.status(400).send('Invalid password');
+  } else if (!req.body.password) {
+    return res.status(400).send('<h1>Invalid password</h1>');
   }
   //if it does work...
   let emailStatus = checkIfEmailExists(req.body.email, users);
   if (emailStatus) {
-    return res.status(400).send('Email already exist');
+    return res.status(400).send('<h1>Email already exist</1>');
   }
+  const hashedPassword = bcrypt.hashSync(req.body.password, saltRounds);
   const id = generateRandomString();
   const newUser = {
     id,
@@ -202,14 +208,4 @@ app.post("/logout", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
 
