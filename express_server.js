@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
-//middlewear 
+//middleware 
 app.use(bodyParser.urlencoded({extended:true}));
 app.set("view engine", "ejs");
 app.use(cookieSession({
@@ -72,7 +72,6 @@ app.get("/urls/new", (req, res) => {
 
 
 app.get("/urls/:shortURL", (req, res) => {
-  console.log(req.cookies);
   if(urlDatabase[req.params.shortURL]) {
     if(req.session.user_id === urlDatabase[req.params.shortURL].userID) { 
       let templateVars = { 
@@ -125,7 +124,7 @@ app.post("/urls", (req, res) => {
 app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(req.body.password, saltRounds);
   const email = req.body.email;
-  console.log(hashedPassword);
+ 
       //invalid email
   if(!email) {
     return res.status(400).send('Invalid email');
@@ -135,7 +134,7 @@ app.post("/register", (req, res) => {
       return res.status(400).send('Invalid password');
   }
   //if it does work...
-  let emailStatus = checkIfEmailExists(req.body.email)
+  let emailStatus = checkIfEmailExists(req.body.email, users)
     if(emailStatus) {
       return res.status(400).send('Email already exist')
     }
@@ -154,7 +153,7 @@ app.post("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
   const email = req.body.email
-  let userId = checkIfEmailExists(email);
+  let userId = checkIfEmailExists(email, users);
 
   if(!userId) {
     return res.status(403).send('user with that e-mail or password cannot be found');
@@ -170,7 +169,7 @@ app.post("/login", (req, res) => {
 
 // //redirect when edited
 app.post("/urls/:id", (req, res) => {
-  if(req.session.user_id === urlDatabase[req.params.shortURL].userID) {
+  if(req.session.user_id === urlDatabase[req.params.id].userID) {
 
   urlDatabase[req.params.id] = {longURL: req.body.longURL, userID: req.session.user_id};
   res.redirect("/urls")
@@ -212,9 +211,9 @@ const generateRandomString = () => {
 };
 
 //check if email exists
-function checkIfEmailExists(email) {
-  for (let userId in users) {
-    if (users[userId].email === email) {
+const checkIfEmailExists = (email, database) => {
+  for (let userId in database) {
+    if (database[userId].email === email) {
       return userId;
     }
   }
@@ -222,7 +221,7 @@ function checkIfEmailExists(email) {
 };
 
 //function that checks if URLs where the userID is equal to the id of the currently logged-in user.
-function urlsForUsers(id) {
+const urlsForUsers = (id) => {
   let tempDatabase = {};
   for(let shortUrl in urlDatabase) {
     if( urlDatabase[shortUrl].userID === id ) {
@@ -231,4 +230,3 @@ function urlsForUsers(id) {
   }
   return tempDatabase;
 }
-
