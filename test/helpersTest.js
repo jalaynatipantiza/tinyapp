@@ -1,6 +1,6 @@
-const { assert } = require('chai');
+const { assert} = require('chai');
+const {checkIfEmailExists, urlsForUsers } = require('../helpers')
 
-const { checkIfEmailExists } = require('../helpers.js');
 
 const testUsers = {
   "userRandomID": {
@@ -26,5 +26,31 @@ describe('checkIfEmailExists', function() {
     const  expectedOutput = undefined;
     assert.strictEqual(user, expectedOutput)
   })
- 
 });
+
+const urlDatabase = {
+
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW"  },
+  dsjghf: { longURL: "https://www.jw.org", userID: "userRandomID"  },
+  isdfkd3: { longURL: "https://www.google.ca", userID: "jgdfxfkh"  },
+  drgnsfl: { longURL: "https://www.google.ca", userID: "userRandomID"  },
+  fdghe8: { longURL: "https://www.google.ca", userID: "aJ48lW"  }
+  
+};
+// return object of all urls that user created
+describe('urlsForUsers', function() {
+  it('should return object for all urls user created', function() {
+    const user = urlsForUsers('userRandomID', urlDatabase)
+    const expectedOutput = {
+      b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
+      dsjghf: { longURL: "https://www.jw.org", userID: "userRandomID"},
+      drgnsfl: { longURL: "https://www.google.ca", userID: "userRandomID"}
+    }
+      assert.deepEqual(user, expectedOutput)
+  })
+})
+
+
+
+

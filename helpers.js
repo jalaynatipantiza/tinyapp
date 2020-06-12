@@ -5,10 +5,9 @@ const checkIfEmailExists = (email, database) => {
       return userId;
     }
   }
-
 };
 
-//checks if URLs where the userID is equal to the id of the currently logged-in user.
+// return object of all urls that user created
 const urlsForUsers = (id, database) => {
   let tempDatabase = {};
   for (let shortUrl in database) {
