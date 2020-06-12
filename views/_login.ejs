@@ -12,19 +12,27 @@
 
   <body>
     <%- include('partials/_header') %>
+    <div class="container"> 
+      <form action="/action_page.php">
     <main style="margin: 1em;">
       <h3>Login</h3>
-      <form class="form-inline" action="/login" method="POST">
-        <div class="form-group mb-2">
+      <div class="form-group">
+      <form class="form-inline" action="/login" method="POST">     
           <label for="email">Email address:</label>
           <input class="form-control" id="email" type="email" name="email" placeholder="Enter email" style="width: 300px; margin: 1em">
+      </form>
         </div>
-        <div class="form-group mb-2">
+        <form action="/action_page.php"> 
+        <div class="form-group">
+          <form class="form-inline" action="/login" method="POST"> 
           <label for="password">Password:</label>
           <input class="form-control" id="password" type="password" name="password" placeholder="Enter password" style="width: 300px; margin: 1em">
+          </form>
           <button type="submit" class="btn btn-primary">login</button>
+          </form>
         </div>
       </form>
+    </div>
     </main>
 
    
